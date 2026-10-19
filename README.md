@@ -4,7 +4,7 @@
 
 A small native macOS app that puts CPU usage, memory usage, and free startup disk space in your menu bar. Click it to see which apps are using the most resources, quit an app normally, or force quit one that will not close.
 
-![Menu Stats showing system resources and the top apps by usage](docs/screenshots/overview.jpg)
+<img src="docs/screenshots/overview.png" width="466" alt="Menu Stats 1.4.0 showing CPU, memory, free disk space, and the update settings gear" />
 
 ## Download and install
 
@@ -86,7 +86,13 @@ CPU readings need two samples. The panel briefly shows a measuring state after o
 
 Open the panel's gear menu and choose **Check for Updates…**. When a new version is available, review its notes and choose **Install Update**, then **Install and Relaunch**. Menu Stats downloads, verifies, replaces the installed app, and reopens it without a trip to GitHub.
 
+<img src="docs/screenshots/updates-menu.png" width="657" alt="Menu Stats gear menu with Check for Updates and Automatically check for updates enabled" />
+
 Automatic checks run approximately once a day. Turn **Automatically check for updates** off in the same menu if you prefer manual checks. Each installation requires your approval. When a background check finds an update, an arrow in the menu bar and a message in the panel let you open it when ready.
+
+<img src="docs/screenshots/up-to-date.png" width="260" alt="Menu Stats confirming that version 1.4.0 is currently the newest version available" />
+
+*Menu Stats 1.4.0 after checking the public update feed.*
 
 **Already using 1.3.2 or earlier?** Install 1.4.0 once using the download above. Earlier versions do not contain the updater; future releases can be installed from within the app.
 
@@ -96,9 +102,9 @@ Click **Quit** beside a desktop app and review its name before confirming. Norma
 
 If normal Quit does not work, choose **Force Quit…** in the confirmation panel. A second confirmation warns that unsaved changes may be lost. Force Quit never runs automatically after a normal quit request fails.
 
-![Menu Stats showing its separate Force Quit confirmation and unsaved changes warning](docs/screenshots/force-quit.jpg)
+<img src="docs/screenshots/force-quit.png" width="420" alt="Menu Stats showing the separate Force Quit confirmation and unsaved changes warning for a disposable test app" />
 
-*The screenshot shows the separate Force Quit warning. This preview was cancelled without quitting the selected app.*
+*The screenshot shows the separate Force Quit warning for a disposable test app. This preview was cancelled without confirming Force Quit.*
 
 The selected app stays fixed while the live rankings change. Closing the panel or choosing Cancel dismisses a pending confirmation. Feedback reports a quit request, not a guaranteed completed exit.
 
