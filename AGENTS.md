@@ -2,7 +2,7 @@
 
 ## Scope
 
-Native macOS menu bar utility for CPU usage, physical memory usage, and free space on the startup data volume. Keep it small, local, and dependency-free. No network, telemetry, privileged helpers, or automatic startup registration.
+Native macOS menu bar utility for CPU usage, physical memory usage, and free space on the startup data volume. Keep resource sampling local and dependency-free. Sparkle is the only app dependency, used for signed in-app updates requested by Dennis on 19 October 2026. Network access is limited to the update feed and release downloads. No telemetry, custom privileged helpers, or automatic startup registration.
 
 ## Implementation
 
@@ -14,6 +14,7 @@ Native macOS menu bar utility for CPU usage, physical memory usage, and free spa
 - Show unknown/error states explicitly. Never turn failed samples into zero.
 - CPU uses an interval sample over all cores. Document the memory and disk definitions.
 - Bound history and polling; do not spawn shell commands to collect metrics.
+- Use Sparkle's standard updater and persisted preferences. Check automatically by default, allow users to disable checks, and require approval to install. Keep system profiling disabled. Verify signed feeds and update archives before extraction; never weaken validation to bypass update errors. Keep private update keys in Keychain, with only the public key in the repository.
 - App quit requests require an explicit named confirmation and a revalidated application identity. Keep normal Quit available. Force Quit requires a separate confirmation warning about unsaved changes and must never run as an automatic fallback. Use NSRunningApplication APIs; do not terminate background services or target by display name alone.
 - Do not use em dashes in authored copy.
 
@@ -23,5 +24,6 @@ Native macOS menu bar utility for CPU usage, physical memory usage, and free spa
 - Inspect the actual native menu bar UI. Keep the app running for review.
 - A browser development server is unnecessary for this native application; the runnable app is the interactive preview.
 - Build the local app bundle with scripts/build-app.sh. Keep generated binaries and work files out of git.
+- Embed and sign Sparkle's nested code before signing the app. Updates require a signed, notarized release, an increasing CFBundleVersion, and a signed updates/appcast.xml. Follow updates/README.md and test an actual install/relaunch cycle when changing the updater or packaging.
 - Work on your own branch, inspect the diff for secrets, commit and push that branch. Default-branch merges and public distribution need explicit approval.
 - Keep the working checkout in a local development directory, outside cloud-managed Documents folders. Offloaded build files can stall Swift and Git.

@@ -18,11 +18,13 @@ enum MenuStatsApplication {
 @MainActor
 private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private let store = StatsStore()
+    private let updates = UpdateController()
     private var statusItem: NSStatusItem?
     private let popover = NSPopover()
     private var subscription: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        updates.willShowUpdateUI = { [weak self] in self?.popover.performClose(nil) }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem = item
         item.autosaveName = "MenuStatsStatusItem"
@@ -40,17 +42,21 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDeleg
         popover.animates = true
         popover.contentViewController = NSHostingController(rootView: StatsPanel(
             store: store,
+            updates: updates,
+            checkForUpdates: { [weak self] in self?.checkForUpdates() },
             openActivityMonitor: { [weak self] in self?.openActivityMonitor() },
             quit: { NSApplication.shared.terminate(nil) }
         ))
 
-        subscription = store.$snapshot.sink { [weak self] snapshot in
-            let title = StatsFormat.menuTitle(snapshot)
+        subscription = store.$snapshot.combineLatest(updates.$availableUpdateVersion).sink { [weak self] snapshot, updateVersion in
+            let title = StatsFormat.menuTitle(snapshot) + (updateVersion == nil ? "" : "  ↑")
+            let detail = updateVersion.map { "Menu Stats \($0) is available. Click to update." } ?? "Click for details"
             self?.statusItem?.button?.title = title
-            self?.statusItem?.button?.toolTip = "\(title)\nClick for details"
-            self?.statusItem?.button?.setAccessibilityLabel("Menu Stats: \(title)")
+            self?.statusItem?.button?.toolTip = "\(title)\n\(detail)"
+            self?.statusItem?.button?.setAccessibilityLabel("Menu Stats: \(title). \(detail)")
         }
         store.start()
+        updates.start()
 
         if CommandLine.arguments.contains("--show") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
@@ -104,5 +110,11 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDeleg
             }
         }
         popover.performClose(nil)
+    }
+
+    private func checkForUpdates() {
+        popover.performClose(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        updates.checkForUpdates()
     }
 }

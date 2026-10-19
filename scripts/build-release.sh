@@ -96,6 +96,7 @@ if /usr/bin/grep -Fq -- "$project_dir" "$staging_dir/executable-strings.txt"; th
     exit 1
 fi
 
+bash "$project_dir/scripts/embed-sparkle.sh" "$project_dir" "$staged_bundle" "$signing_identity"
 if [[ -n "$signing_identity" ]]; then
     /usr/bin/codesign --force --sign "$signing_identity" --options runtime --timestamp "$staged_bundle"
     /usr/bin/codesign --display --verbose=4 "$staged_bundle" > "$staging_dir/signature.txt" 2>&1
@@ -106,7 +107,7 @@ if [[ -n "$signing_identity" ]]; then
 else
     /usr/bin/codesign --force --sign - --timestamp=none "$staged_bundle"
 fi
-/usr/bin/codesign --verify --strict --verbose=2 "$staged_bundle"
+/usr/bin/codesign --verify --deep --strict --all-architectures --verbose=2 "$staged_bundle"
 
 # Only replace a matching app after the new universal bundle has passed validation.
 if [[ -e "$bundle_path" || -L "$bundle_path" ]]; then

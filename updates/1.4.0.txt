@@ -1,0 +1,7 @@
+Menu Stats can now install new versions without opening GitHub.
+
+Choose Check for Updates in the menu-bar panel to see the latest version, download it, and install and relaunch the app.
+
+Automatic update checks are enabled by default and can be turned off in the panel. You choose when to install each update.
+
+Update feeds and downloads are cryptographically signed. Resource readings stay on your Mac and system profiling is disabled.

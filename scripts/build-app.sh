@@ -65,8 +65,9 @@ mkdir -p -- "$staged_bundle/Contents/MacOS" "$staged_bundle/Contents/Resources"
 cp -- "$binary_path" "$staged_bundle/Contents/MacOS/MenuStats"
 cp -- "$project_dir/packaging/Info.plist" "$staged_bundle/Contents/Info.plist"
 cp -- "$icon_path" "$staged_bundle/Contents/Resources/AppIcon.icns"
+bash "$project_dir/scripts/embed-sparkle.sh" "$project_dir" "$staged_bundle" ""
 /usr/bin/codesign --force --sign - --timestamp=none "$staged_bundle"
-/usr/bin/codesign --verify --strict --verbose=2 "$staged_bundle"
+/usr/bin/codesign --verify --deep --strict --all-architectures --verbose=2 "$staged_bundle"
 
 if [[ -e "$bundle_path" || -L "$bundle_path" ]]; then
     if [[ -L "$bundle_path" || ! -d "$bundle_path" ]]; then

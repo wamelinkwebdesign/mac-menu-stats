@@ -8,9 +8,9 @@ A small native macOS app that puts CPU usage, memory usage, and free startup dis
 
 ## Download and install
 
-**[Download Menu Stats 1.3.2 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.2/Menu-Stats-1.3.2-universal.dmg)**
+**[Download Menu Stats 1.4.0 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.4.0/Menu-Stats-1.4.0-universal.dmg)**
 
-The WAMELINK-branded disk image opens a drag-to-Applications installation window. A [ZIP download](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.2/Menu-Stats-1.3.2-universal.zip) is also available.
+The WAMELINK-branded disk image opens a drag-to-Applications installation window. A [ZIP download](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.4.0/Menu-Stats-1.4.0-universal.zip) is also available.
 
 Requires macOS 13 or later. One universal download includes Apple silicon and Intel builds. No Xcode or Swift installation is needed to use it.
 
@@ -32,7 +32,8 @@ See [all releases](https://github.com/wamelinkwebdesign/mac-menu-stats/releases)
 - Normal Quit and a separate, explicitly confirmed Force Quit action for desktop apps.
 - Refresh every 1, 2, or 5 seconds, plus a manual refresh button and a shortcut to Activity Monitor.
 - Native SwiftUI and AppKit controls with system light and dark appearance.
-- Local system APIs, no package dependencies, network access, telemetry, or privileged helpers.
+- In-app update checks, signed downloads, and installation with your approval.
+- Local system APIs for metrics, no telemetry, and network access limited to software updates.
 
 ## Requirements
 
@@ -81,6 +82,14 @@ Click the CPU, RAM, and free disk text in the menu bar to open the panel. Choose
 
 CPU readings need two samples. The panel briefly shows a measuring state after opening, then updates the list. Detailed process sampling runs only while the panel is open.
 
+### Install updates
+
+Open the panel's gear menu and choose **Check for Updates…**. When a new version is available, review its notes and choose **Install Update**, then **Install and Relaunch**. Menu Stats downloads, verifies, replaces the installed app, and reopens it without a trip to GitHub.
+
+Automatic checks run approximately once a day. Turn **Automatically check for updates** off in the same menu if you prefer manual checks. Each installation requires your approval. When a background check finds an update, an arrow in the menu bar and a message in the panel let you open it when ready.
+
+**Already using 1.3.2 or earlier?** Install 1.4.0 once using the download above. Earlier versions do not contain the updater; future releases can be installed from within the app.
+
 ### Quit an app
 
 Click **Quit** beside a desktop app and review its name before confirming. Normal Quit lets the app show a save dialog or decline to exit.
@@ -115,7 +124,9 @@ Unavailable readings are shown as unknown, never as zero. Protected or exited pr
 
 ## Privacy and app control
 
-Resource collection stays on your Mac and uses system APIs rather than shell commands. The app asks for no additional permissions.
+Resource collection stays on your Mac and uses system APIs rather than shell commands. Update checks contact a signed feed hosted on GitHub; approved updates download from GitHub Releases. GitHub receives ordinary request information such as IP address and app/version user agent. CPU, memory, disk, and app-usage readings are never uploaded. Sparkle's system profiling is disabled.
+
+[Sparkle](https://sparkle-project.org/) verifies the signed update feed and the archive before extraction, then handles installation and relaunch. The app asks for no additional monitoring permissions. macOS may request administrator approval if the installed app is not writable by your account.
 
 Normal Quit and Force Quit use `NSRunningApplication`. Each request rechecks the originally selected application instance, including its identity and lifetime. It never substitutes a newly launched app or a process that reused the selected app's PID. There is no raw PID signaling, shell-based process killing, or elevated access.
 
@@ -152,6 +163,8 @@ CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" bash scripts/b
 
 This creates `outputs/release/Menu Stats.app` with optimized Apple silicon and Intel executables and validates its signature. Signing with Developer ID enables the hardened runtime and a secure timestamp. Without `CODE_SIGN_IDENTITY`, the script creates an explicitly ad-hoc signed local build. The script does not notarize or upload the app.
 
+The build scripts embed the pinned Sparkle framework and its license, preserve its symlinks and helper entitlements, and sign nested code before the app. See [the update release guide](updates/README.md) for notarizing, generating the signed feed, testing an upgrade, and publishing future versions.
+
 ### Build the branded DMG
 
 The DMG packages an already notarized and stapled release app. Its build tools run in a local environment under `work/`; they are not included in the application. With `uv` available, set them up once:
@@ -171,10 +184,10 @@ CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
 The script validates the app's signature and ticket, creates the WAMELINK Finder layout, verifies the Applications shortcut and copied app, and signs `outputs/dmg/Menu-Stats-<version>-universal.dmg`. It requires the Menu Stats developer team and preserves an earlier output if validation fails. Submit that final DMG to Apple's notary service and staple its ticket before publishing:
 
 ```sh
-xcrun notarytool submit outputs/dmg/Menu-Stats-1.3.2-universal.dmg \
+xcrun notarytool submit outputs/dmg/Menu-Stats-1.4.0-universal.dmg \
   --keychain-profile YOUR_NOTARY_PROFILE --wait
-xcrun stapler staple outputs/dmg/Menu-Stats-1.3.2-universal.dmg
-xcrun stapler validate outputs/dmg/Menu-Stats-1.3.2-universal.dmg
+xcrun stapler staple outputs/dmg/Menu-Stats-1.4.0-universal.dmg
+xcrun stapler validate outputs/dmg/Menu-Stats-1.4.0-universal.dmg
 ```
 
 The editable background renderer, brand sources, and font license are documented in [packaging/dmg/README.md](packaging/dmg/README.md).

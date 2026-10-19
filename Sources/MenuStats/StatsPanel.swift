@@ -3,6 +3,8 @@ import MenuStatsCore
 
 struct StatsPanel: View {
     @ObservedObject var store: StatsStore
+    @ObservedObject var updates: UpdateController
+    let checkForUpdates: () -> Void
     let openActivityMonitor: () -> Void
     let quit: () -> Void
 
@@ -12,7 +14,7 @@ struct StatsPanel: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Menu Stats")
                         .font(.headline)
-                    Text("This Mac")
+                    Text("This Mac · \(updates.version)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -25,6 +27,39 @@ struct StatsPanel: View {
                 .buttonStyle(.borderless)
                 .help("Refresh now")
                 .accessibilityLabel("Refresh now")
+                Menu {
+                    Button("Check for Updates…", action: checkForUpdates)
+                        .disabled(!updates.isAvailable || !updates.canCheckForUpdates)
+                    Toggle("Automatically check for updates", isOn: Binding(
+                        get: { updates.automaticallyChecksForUpdates },
+                        set: { updates.setAutomaticallyChecksForUpdates($0) }
+                    ))
+                    .disabled(!updates.isAvailable)
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .help("Update settings")
+                .accessibilityLabel("Update settings")
+            }
+
+            if let version = updates.availableUpdateVersion {
+                Button(action: checkForUpdates) {
+                    Label("Menu Stats \(version) is available", systemImage: "arrow.down.circle")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .controlSize(.small)
+                .disabled(!updates.canCheckForUpdates)
+                .help("Review and install the update")
+            }
+
+            if let error = updates.initializationError {
+                Label(error, systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Divider()
