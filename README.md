@@ -6,16 +6,20 @@ A small native macOS app that puts CPU usage, memory usage, and free startup dis
 
 ## Download and install
 
-**[Download Menu Stats 1.3.1 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.1/Menu-Stats-1.3.1-universal.zip)**
+**[Download Menu Stats 1.3.1 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.1/Menu-Stats-1.3.1-universal.dmg)**
+
+The WAMELINK-branded disk image opens a drag-to-Applications installation window. A [ZIP download](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.1/Menu-Stats-1.3.1-universal.zip) is also available.
 
 Requires macOS 13 or later. One universal download includes Apple silicon and Intel builds. No Xcode or Swift installation is needed to use it.
 
-1. Download and unzip the file.
-2. Drag **Menu Stats.app** into **Applications**. Quit an older copy before replacing it.
-3. Open **Menu Stats** from Applications. Its CPU, RAM, and disk readings appear in the menu bar.
+1. Download and open the DMG file.
+2. Drag **Menu Stats** onto the **Applications** folder in the installation window. Quit an older copy before replacing it.
+3. Eject the **Menu Stats** disk, then open **Menu Stats** from Applications. Its CPU, RAM, and disk readings appear in the menu bar.
 4. To start it automatically, add the installed app under **System Settings > General > Login Items & Extensions > Open at Login**.
 
-The download is signed with an Apple Developer ID certificate and **notarized by Apple**. Its notarization ticket is stapled to the app. macOS may still ask you to confirm that you want to open an app downloaded from the internet.
+The app and DMG are signed with an Apple Developer ID certificate and **notarized by Apple**, with notarization tickets stapled to both. macOS may still ask you to confirm that you want to open an app downloaded from the internet.
+
+![WAMELINK-branded Menu Stats installer with a drag-to-Applications layout](docs/screenshots/installer.jpg)
 
 See [all releases](https://github.com/wamelinkwebdesign/mac-menu-stats/releases) for release notes and SHA-256 checksums. The current build was run on Apple silicon; the Intel slice is included and signature-checked, but has not been run on an Intel Mac.
 
@@ -145,3 +149,30 @@ CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" bash scripts/b
 ```
 
 This creates `outputs/release/Menu Stats.app` with optimized Apple silicon and Intel executables and validates its signature. Signing with Developer ID enables the hardened runtime and a secure timestamp. Without `CODE_SIGN_IDENTITY`, the script creates an explicitly ad-hoc signed local build. The script does not notarize or upload the app.
+
+### Build the branded DMG
+
+The DMG packages an already notarized and stapled release app. Its build tools run in a local environment under `work/`; they are not included in the application. With `uv` available, set them up once:
+
+```sh
+uv venv work/dmg-build-env --python 3.14
+uv pip install --python work/dmg-build-env/bin/python -r packaging/dmg-requirements.txt
+```
+
+Build and sign the disk image:
+
+```sh
+CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+  bash scripts/build-dmg.sh "outputs/notarized-release/Menu Stats.app"
+```
+
+The script validates the app's signature and ticket, creates the WAMELINK Finder layout, verifies the Applications shortcut and copied app, and signs `outputs/dmg/Menu-Stats-<version>-universal.dmg`. It requires the Menu Stats developer team and preserves an earlier output if validation fails. Submit that final DMG to Apple's notary service and staple its ticket before publishing:
+
+```sh
+xcrun notarytool submit outputs/dmg/Menu-Stats-1.3.1-universal.dmg \
+  --keychain-profile YOUR_NOTARY_PROFILE --wait
+xcrun stapler staple outputs/dmg/Menu-Stats-1.3.1-universal.dmg
+xcrun stapler validate outputs/dmg/Menu-Stats-1.3.1-universal.dmg
+```
+
+The editable background renderer, brand sources, and font license are documented in [packaging/dmg/README.md](packaging/dmg/README.md).
