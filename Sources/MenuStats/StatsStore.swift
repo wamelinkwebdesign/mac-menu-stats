@@ -2,6 +2,7 @@ import Combine
 import AppKit
 import Foundation
 import MenuStatsCore
+import MenuStatsAppControl
 
 private actor SamplingService {
     private var sampler = SystemSampler()
@@ -22,6 +23,8 @@ private actor AppSamplingService {
 final class StatsStore: ObservableObject {
     @Published private(set) var snapshot: SystemSnapshot?
     @Published private(set) var appUsage: AppUsageSnapshot?
+    @Published private(set) var quitFeedback: String?
+    @Published private(set) var panelIsVisible = false
     @Published var refreshInterval: Int {
         didSet {
             UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
@@ -32,11 +35,11 @@ final class StatsStore: ObservableObject {
 
     private let service = SamplingService()
     private let appService = AppSamplingService()
+    private let quitController = AppQuitController()
     private var pollingTask: Task<Void, Never>?
     private var appPollingTask: Task<Void, Never>?
     private var refreshing = false
     private var refreshingApps = false
-    private var panelIsVisible = false
     private var appGeneration = 0
     private let appIcons = NSCache<NSString, NSImage>()
 
@@ -127,6 +130,24 @@ final class StatsStore: ObservableObject {
         let icon = NSWorkspace.shared.icon(forFile: path)
         appIcons.setObject(icon, forKey: path as NSString)
         return icon
+    }
+
+    func quitTarget(for app: AppUsageReading) -> AppQuitTarget? {
+        quitController.prepare(app)
+    }
+
+    func requestQuit(_ target: AppQuitTarget) {
+        switch quitController.requestQuit(target) {
+        case .requested:
+            quitFeedback = "Asked \(target.name) to quit. It may ask you to save your work."
+        case .partiallyRequested:
+            quitFeedback = "Some instances of \(target.name) accepted the quit request. Others did not; try their own Quit command."
+        case .noLongerRunning:
+            quitFeedback = "The selected instance of \(target.name) is no longer running."
+        case .failed:
+            quitFeedback = "Could not request that \(target.name) quit. Try its own Quit command."
+        }
+        Task { await refresh() }
     }
 }
 

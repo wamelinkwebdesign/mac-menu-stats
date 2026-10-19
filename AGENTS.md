@@ -12,6 +12,7 @@ Native macOS menu bar utility for CPU usage, physical memory usage, and free spa
 - Show unknown/error states explicitly. Never turn failed samples into zero.
 - CPU uses an interval sample over all cores. Document the memory and disk definitions.
 - Bound history and polling; do not spawn shell commands to collect metrics.
+- App quit requests require an explicit named confirmation and a revalidated application identity. Use normal macOS quit requests only. Do not force quit, terminate background services, or target by display name alone.
 - Do not use em dashes in authored copy.
 
 ## Verification and delivery

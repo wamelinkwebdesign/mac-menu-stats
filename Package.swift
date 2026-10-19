@@ -11,8 +11,10 @@ let package = Package(
     targets: [
         .target(name: "CProcessStats"),
         .target(name: "MenuStatsCore", dependencies: ["CProcessStats"]),
-        .executableTarget(name: "MenuStats", dependencies: ["MenuStatsCore"]),
+        .target(name: "MenuStatsAppControl", dependencies: ["MenuStatsCore"]),
+        .executableTarget(name: "MenuStats", dependencies: ["MenuStatsCore", "MenuStatsAppControl"]),
         .executableTarget(name: "MenuStatsProbe", dependencies: ["MenuStatsCore"]),
-        .testTarget(name: "MenuStatsCoreTests", dependencies: ["MenuStatsCore"])
+        .testTarget(name: "MenuStatsCoreTests", dependencies: ["MenuStatsCore"]),
+        .testTarget(name: "MenuStatsAppControlTests", dependencies: ["MenuStatsAppControl"])
     ]
 )

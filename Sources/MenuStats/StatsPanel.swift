@@ -82,13 +82,13 @@ struct StatsPanel: View {
             HStack {
                 Button("Activity Monitor", action: openActivityMonitor)
                 Spacer()
-                Button("Quit", action: quit)
+                Button("Quit Menu Stats", action: quit)
                     .keyboardShortcut("q", modifiers: .command)
             }
             .controlSize(.small)
         }
         .padding(20)
-        .frame(width: 390)
+        .frame(width: 440)
     }
 
     private var memoryDetail: String {

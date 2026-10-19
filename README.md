@@ -13,6 +13,8 @@ The build script creates a debug app bundle and verifies its local ad-hoc signat
 
 The app runs in the menu bar without a Dock icon. Click its CPU, RAM, and free disk text to open details. The Top apps table shows five entries with CPU and memory readings; select CPU or Memory to change the ranking. The popover includes Refresh now, Open Activity Monitor, Quit, and a refresh interval of 1, 2, or 5 seconds. The default is 2 seconds; your interval choice is saved locally. If the menu bar is crowded, macOS may hide the item until more space is available.
 
+Use **Quit** beside a desktop app to request that it quit. The panel names the selected app and offers Cancel or Quit. The selection stays fixed while live rankings change, and closing the panel cancels a pending confirmation. Quit uses the normal macOS request, so the app can show its save dialog or decline to exit. A request is not reported as a completed exit. Quit is disabled for background processes, apps without a verifiable running identity, and Menu Stats itself; the bottom **Quit Menu Stats** button closes this utility. There is no force quit or signal-based process killing.
+
 ## Metrics
 
 - **CPU:** The change in user, system, and nice CPU ticks divided by the change in all ticks, including idle. This is usage across all cores on a 0 to 100% scale. The first reading needs two samples.
@@ -22,7 +24,7 @@ The app runs in the menu bar without a Dock icon. Click its CPU, RAM, and free d
 - **Top apps CPU:** Interval CPU time divided by elapsed time and the logical core count, on the same whole-machine scale as the menu bar. Both times use Mach absolute-time ticks. Activity Monitor commonly uses 100% per core instead, so its CPU percentages can be higher. A fresh baseline is collected each time the panel opens.
 - **Top apps memory:** The physical footprint reported by `proc_pid_rusage`, including compressed memory. Helpers inside an app bundle are grouped under the outermost app. Standalone background processes are also shown; unrelated processes are not merged just because their names match. These figures do not sum directly to the system memory estimate.
 
-System metrics are sampled at the selected refresh interval. Detailed process sampling runs only while the popover is open. Its initial CPU baseline is followed by a second sample after one second, then the selected interval. Protected or exited processes may be unavailable, and the panel indicates partial coverage. No extra permissions or process control are requested.
+System metrics are sampled at the selected refresh interval. Detailed process sampling runs only while the popover is open. Its initial CPU baseline is followed by a second sample after one second, then the selected interval. Protected or exited processes may be unavailable, and the panel indicates partial coverage. The app asks for no additional permissions. A quit request rechecks the originally selected application instance and never substitutes a newly launched app or a process that reused its PID.
 
 For automatic startup, add the installed copy of Menu Stats to System Settings > General > Login Items & Extensions > Open at Login. The app does not register itself automatically.
 
@@ -37,6 +39,6 @@ bash scripts/build-app.sh
 open "outputs/Menu Stats.app" --args --show
 ```
 
-The probe prints two real samples as JSON, one second apart, without opening the UI. Its first CPU reading is absent while the sampler establishes a baseline. It exits with a failure status if the second sample has missing metrics or errors. `--apps` selects app/process readings and fails on enumeration errors or missing usable CPU readings. For the native smoke check, confirm the menu bar values update, inspect the Top apps table in both sort modes, close and reopen the popover, change the refresh interval, and open Activity Monitor. The running app is the interactive preview; no browser or development server is needed.
+The probe prints two real samples as JSON, one second apart, without opening the UI. Its first CPU reading is absent while the sampler establishes a baseline. It exits with a failure status if the second sample has missing metrics or errors. `--apps` selects app/process readings and fails on enumeration errors or missing usable CPU readings. For the native smoke check, confirm the menu bar values update, inspect the Top apps table in both sort modes, close and reopen the popover, change the refresh interval, and open Activity Monitor. Validate Cancel and Quit using a disposable test application, never another app containing user work. The running app is the interactive preview; no browser or development server is needed.
 
-Sources are split into `MenuStatsCore` for sampling and calculations, `MenuStats` for the native interface, and `MenuStatsProbe` for the command-line probe. Generated bundles and Swift build artifacts are kept out of git.
+Sources are split into `MenuStatsCore` for sampling and calculations, `MenuStatsAppControl` for verified graceful quit requests, `MenuStats` for the native interface, and `MenuStatsProbe` for the command-line probe. Generated bundles and Swift build artifacts are kept out of git.
