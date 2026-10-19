@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Menu Stats</title>
+        <item>
+            <title>1.4.0</title>
+            <pubDate>Mon, 19 Oct 2026 23:27:18 +0200</pubDate>
+            <link>https://github.com/wamelinkwebdesign/mac-menu-stats</link>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="plain-text"><![CDATA[Menu Stats can now install new versions without opening GitHub.
+
+Choose Check for Updates in the menu-bar panel to see the latest version, download it, and install and relaunch the app.
+
+Automatic update checks are enabled by default and can be turned off in the panel. You choose when to install each update.
+
+Update feeds and downloads are cryptographically signed. Resource readings stay on your Mac and system profiling is disabled.
+]]></description>
+            <enclosure url="https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.4.0/Menu-Stats-1.4.0-universal.dmg" length="1393072" type="application/octet-stream" sparkle:edSignature="FHSGF5FkVZpkKAhl6NTryzOl23h4eOIVqlVq+kRbsZPldobotUqR8dMp0AIXuX+VZUdX2zikiIhOV93/qeLJDQ=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: br/QFp3w2ezulTlLkavbrydiEubQUYKY7eLvrc0ZqceqRqks9F8yDg5bxGLA68TArZLBACnQQwg+8ASoXr1kCQ==
+length: 1664
+-->
