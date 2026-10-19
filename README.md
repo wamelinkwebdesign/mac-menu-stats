@@ -15,7 +15,7 @@ Requires macOS 13 or later. One universal download includes Apple silicon and In
 3. Open **Menu Stats** from Applications. Its CPU, RAM, and disk readings appear in the menu bar.
 4. To start it automatically, add the installed app under **System Settings > General > Login Items & Extensions > Open at Login**.
 
-The download is signed with an Apple Developer ID certificate, but **is not notarized by Apple**. macOS may block the first launch because Apple has not checked it. If you trust this release, attempt to open it, then use **System Settings > Privacy & Security > Open Anyway** and confirm. See [Apple's guidance on opening downloaded apps](https://support.apple.com/en-us/102445). You do not need to disable Gatekeeper or run Terminal commands.
+The download is signed with an Apple Developer ID certificate and **notarized by Apple**. Its notarization ticket is stapled to the app. macOS may still ask you to confirm that you want to open an app downloaded from the internet.
 
 See [all releases](https://github.com/wamelinkwebdesign/mac-menu-stats/releases) for release notes and SHA-256 checksums. The current build was run on Apple silicon; the Intel slice is included and signature-checked, but has not been run on an Intel Mac.
 
