@@ -16,7 +16,7 @@ enum MenuStatsApplication {
 }
 
 @MainActor
-private final class AppDelegate: NSObject, NSApplicationDelegate {
+private final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private let store = StatsStore()
     private var statusItem: NSStatusItem?
     private let popover = NSPopover()
@@ -36,6 +36,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         popover.behavior = .transient
+        popover.delegate = self
         popover.animates = true
         popover.contentViewController = NSHostingController(rootView: StatsPanel(
             store: store,
@@ -60,6 +61,14 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         store.stop()
+    }
+
+    func popoverWillShow(_ notification: Notification) {
+        store.setPanelVisible(true)
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        store.setPanelVisible(false)
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

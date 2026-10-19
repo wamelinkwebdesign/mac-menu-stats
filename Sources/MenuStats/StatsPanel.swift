@@ -7,7 +7,7 @@ struct StatsPanel: View {
     let quit: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Menu Stats")
@@ -60,6 +60,10 @@ struct StatsPanel: View {
 
             Divider()
 
+            AppUsageView(store: store)
+
+            Divider()
+
             HStack {
                 Text("Update every")
                     .font(.caption)
@@ -84,7 +88,7 @@ struct StatsPanel: View {
             .controlSize(.small)
         }
         .padding(20)
-        .frame(width: 340)
+        .frame(width: 390)
     }
 
     private var memoryDetail: String {

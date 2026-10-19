@@ -9,7 +9,8 @@ let package = Package(
         .executable(name: "MenuStatsProbe", targets: ["MenuStatsProbe"])
     ],
     targets: [
-        .target(name: "MenuStatsCore"),
+        .target(name: "CProcessStats"),
+        .target(name: "MenuStatsCore", dependencies: ["CProcessStats"]),
         .executableTarget(name: "MenuStats", dependencies: ["MenuStatsCore"]),
         .executableTarget(name: "MenuStatsProbe", dependencies: ["MenuStatsCore"]),
         .testTarget(name: "MenuStatsCoreTests", dependencies: ["MenuStatsCore"])
