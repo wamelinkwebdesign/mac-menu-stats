@@ -11,8 +11,13 @@ public struct AppQuitTarget: Identifiable {
     fileprivate let applications: [CapturedApplication]
 }
 
+public enum AppQuitMode: Equatable, Sendable {
+    case normal
+    case force
+}
+
 public enum AppQuitResult: Equatable, Sendable {
-    /// A normal quit request was accepted. The app can still prompt to save or cancel quitting.
+    /// A quit request was accepted. This is not proof that the app has exited.
     case requested
     /// At least one original instance accepted the request and at least one rejected it.
     case partiallyRequested
@@ -70,8 +75,8 @@ public final class AppQuitController {
         )
     }
 
-    /// Revalidate the frozen selection before requesting a graceful quit of each original instance.
-    public func requestQuit(_ target: AppQuitTarget) -> AppQuitResult {
+    /// Both modes revalidate the frozen selection. A rejected normal request never escalates.
+    public func requestQuit(_ target: AppQuitTarget, mode: AppQuitMode = .normal) -> AppQuitResult {
         let liveApplications = runningApplications()
         var requested = false
         var failed = false
@@ -82,7 +87,7 @@ public final class AppQuitController {
                       $0.representsSameApplication(as: captured.application)
                   }),
                   identity(of: live) == captured.identity else { continue }
-            if live.requestTermination() {
+            if live.requestTermination(mode: mode) {
                 requested = true
             } else {
                 failed = true
@@ -129,7 +134,7 @@ protocol QuitApplication: AnyObject {
     var isTerminated: Bool { get }
     var isRegular: Bool { get }
     func representsSameApplication(as other: any QuitApplication) -> Bool
-    func requestTermination() -> Bool
+    func requestTermination(mode: AppQuitMode) -> Bool
 }
 
 @MainActor
@@ -149,5 +154,10 @@ private final class NativeQuitApplication: QuitApplication {
         return app.isEqual(other.app)
     }
 
-    func requestTermination() -> Bool { app.terminate() }
+    func requestTermination(mode: AppQuitMode) -> Bool {
+        switch mode {
+        case .normal: app.terminate()
+        case .force: app.forceTerminate()
+        }
+    }
 }

@@ -136,16 +136,22 @@ final class StatsStore: ObservableObject {
         quitController.prepare(app)
     }
 
-    func requestQuit(_ target: AppQuitTarget) {
-        switch quitController.requestQuit(target) {
+    func requestQuit(_ target: AppQuitTarget, mode: AppQuitMode) {
+        switch quitController.requestQuit(target, mode: mode) {
         case .requested:
-            quitFeedback = "Asked \(target.name) to quit. It may ask you to save your work."
+            quitFeedback = mode == .force
+                ? "Force quit requested for \(target.name)."
+                : "Asked \(target.name) to quit. It may ask you to save your work."
         case .partiallyRequested:
-            quitFeedback = "Some instances of \(target.name) accepted the quit request. Others did not; try their own Quit command."
+            quitFeedback = mode == .force
+                ? "Force quit requested for some instances of \(target.name). Other instances could not be stopped; try Activity Monitor."
+                : "Some instances of \(target.name) accepted the quit request. Others did not; try their own Quit command."
         case .noLongerRunning:
             quitFeedback = "The selected instance of \(target.name) is no longer running."
         case .failed:
-            quitFeedback = "Could not request that \(target.name) quit. Try its own Quit command."
+            quitFeedback = mode == .force
+                ? "Could not force quit \(target.name). Try Activity Monitor."
+                : "Could not request that \(target.name) quit. Try its own Quit command."
         }
         Task { await refresh() }
     }

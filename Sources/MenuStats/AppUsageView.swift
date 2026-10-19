@@ -6,6 +6,7 @@ struct AppUsageView: View {
     @ObservedObject var store: StatsStore
     @State private var sortBy: SortOrder = .cpu
     @State private var pendingQuit: AppQuitTarget?
+    @State private var quitMode: AppQuitMode = .normal
 
     private enum SortOrder: String, CaseIterable {
         case cpu = "CPU"
@@ -79,35 +80,51 @@ struct AppUsageView: View {
             }
         }
         .onChange(of: store.panelIsVisible) { visible in
-            if !visible { pendingQuit = nil }
+            if !visible { cancelQuit() }
         }
     }
 
     private func quitConfirmation(_ target: AppQuitTarget) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Quit \(target.name)?")
+        let isForce = quitMode == .force
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("\(isForce ? "Force quit" : "Quit") \(target.name)?")
                 .font(.system(size: 13, weight: .semibold))
                 .lineLimit(2)
-            Text(target.instanceCount > 1
-                ? "All \(target.instanceCount) selected instances will be asked to quit. The app may ask you to save your work."
-                : "The app will be asked to quit normally and may ask you to save your work.")
+            Text(isForce
+                ? (target.instanceCount > 1
+                    ? "All \(target.instanceCount) selected instances will be stopped without a save prompt. Unsaved changes may be lost."
+                    : "The app will be stopped without a save prompt. Unsaved changes may be lost.")
+                : (target.instanceCount > 1
+                    ? "All \(target.instanceCount) selected instances will be asked to quit. The app may ask you to save your work."
+                    : "The app will be asked to quit normally and may ask you to save your work."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 Spacer()
-                Button("Cancel") { pendingQuit = nil }
+                Button("Cancel", action: cancelQuit)
                     .keyboardShortcut(.cancelAction)
-                    .accessibilityLabel("Cancel quit")
-                Button("Quit", role: .destructive) {
-                    pendingQuit = nil
-                    store.requestQuit(target)
+                    .accessibilityLabel(isForce ? "Cancel force quit" : "Cancel quit")
+                if !isForce {
+                    Button("Force Quit…") { quitMode = .force }
+                        .accessibilityLabel("Choose force quit \(target.name)")
+                        .help("Use if normal Quit is not working")
                 }
-                .accessibilityLabel("Confirm quit \(target.name)")
+                Button(isForce ? "Force Quit" : "Quit", role: .destructive) {
+                    let confirmedMode: AppQuitMode = isForce ? .force : .normal
+                    cancelQuit()
+                    store.requestQuit(target, mode: confirmedMode)
+                }
+                .accessibilityLabel("Confirm \(isForce ? "force quit" : "quit") \(target.name)")
             }
             .controlSize(.small)
         }
         .frame(maxWidth: .infinity, minHeight: 133, alignment: .center)
+    }
+
+    private func cancelQuit() {
+        pendingQuit = nil
+        quitMode = .normal
     }
 
     private var coverageNote: String {
@@ -149,14 +166,17 @@ struct AppUsageView: View {
             .accessibilityLabel("\(app.name), CPU \(StatsFormat.appCPU(app.cpuPercent)), memory \(StatsFormat.appMemory(app.memoryBytes)), \(app.processCount) processes")
             .help("\(app.name) · \(app.processCount) \(app.processCount == 1 ? "process" : "processes")")
 
-            Button("Quit") { pendingQuit = target }
+            Button("Quit") {
+                quitMode = .normal
+                pendingQuit = target
+            }
                 .controlSize(.mini)
                 .fixedSize()
                 .frame(width: 42)
                 .disabled(target == nil)
                 .help(target == nil
                     ? "Only running desktop apps can be quit here. Use the bottom Quit button to close Menu Stats."
-                    : "Ask \(app.name) to quit normally")
+                    : "Choose Quit or Force Quit for \(app.name)")
                 .accessibilityLabel("Quit \(app.name)")
         }
         .font(.system(size: 12))

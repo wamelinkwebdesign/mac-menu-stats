@@ -13,6 +13,7 @@ final class AppQuitControllerTests: XCTestCase {
         XCTAssertEqual(app.quitRequests, 0)
         XCTAssertEqual(controller.requestQuit(target), .requested)
         XCTAssertEqual(app.quitRequests, 1)
+        XCTAssertEqual(app.requestedModes, [.normal])
         // Request acceptance is not proof that the app exited.
         XCTAssertFalse(app.isTerminated)
     }
@@ -63,7 +64,9 @@ final class AppQuitControllerTests: XCTestCase {
         let replacement = FakeApplication()
         replacement.launchDate = Date(timeIntervalSince1970: 20)
         live = [replacement]
-        XCTAssertEqual(controller.requestQuit(target), .noLongerRunning)
+        for mode in [AppQuitMode.normal, .force] {
+            XCTAssertEqual(controller.requestQuit(target, mode: mode), .noLongerRunning)
+        }
         XCTAssertEqual(replacement.quitRequests, 0)
         XCTAssertEqual(original.quitRequests, 0)
     }
@@ -75,7 +78,9 @@ final class AppQuitControllerTests: XCTestCase {
         let target = try XCTUnwrap(controller.prepare(reading()))
         let replacement = FakeApplication()
         live = [replacement]
-        XCTAssertEqual(controller.requestQuit(target), .noLongerRunning)
+        for mode in [AppQuitMode.normal, .force] {
+            XCTAssertEqual(controller.requestQuit(target, mode: mode), .noLongerRunning)
+        }
         XCTAssertEqual(replacement.quitRequests, 0)
     }
 
@@ -84,12 +89,16 @@ final class AppQuitControllerTests: XCTestCase {
         let controller = controller(apps: { [app] })
         let target = try XCTUnwrap(controller.prepare(reading()))
         app.executableURL = URL(fileURLWithPath: "/Applications/Browser.app/Contents/MacOS/Replaced")
-        XCTAssertEqual(controller.requestQuit(target), .noLongerRunning)
+        for mode in [AppQuitMode.normal, .force] {
+            XCTAssertEqual(controller.requestQuit(target, mode: mode), .noLongerRunning)
+        }
         XCTAssertEqual(app.quitRequests, 0)
 
         let changedTarget = try XCTUnwrap(controller.prepare(reading()))
         app.isRegular = false
-        XCTAssertEqual(controller.requestQuit(changedTarget), .noLongerRunning)
+        for mode in [AppQuitMode.normal, .force] {
+            XCTAssertEqual(controller.requestQuit(changedTarget, mode: mode), .noLongerRunning)
+        }
         XCTAssertEqual(app.quitRequests, 0)
     }
 
@@ -117,17 +126,40 @@ final class AppQuitControllerTests: XCTestCase {
         let target = try XCTUnwrap(controller.prepare(reading()))
         XCTAssertEqual(controller.requestQuit(target), .failed)
         XCTAssertEqual(app.quitRequests, 1)
+        XCTAssertEqual(app.requestedModes, [.normal])
+    }
+
+    func testExplicitForceDispatchesOnlyForceRequest() throws {
+        let app = FakeApplication()
+        let controller = controller(apps: { [app] })
+        let target = try XCTUnwrap(controller.prepare(reading()))
+        XCTAssertTrue(app.requestedModes.isEmpty)
+        XCTAssertEqual(controller.requestQuit(target, mode: .force), .requested)
+        XCTAssertEqual(app.requestedModes, [.force])
+        // The native result reports request acceptance, not observed termination.
+        XCTAssertFalse(app.isTerminated)
+    }
+
+    func testFailedForceRequestReportsFailureWithoutRetry() throws {
+        let app = FakeApplication()
+        app.acceptsRequest = false
+        let controller = controller(apps: { [app] })
+        let target = try XCTUnwrap(controller.prepare(reading()))
+        XCTAssertEqual(controller.requestQuit(target, mode: .force), .failed)
+        XCTAssertEqual(app.requestedModes, [.force])
     }
 
     func testMixedInstanceResponsesReportPartialRequest() throws {
-        let accepting = FakeApplication(pid: 1)
-        let rejecting = FakeApplication(pid: 2)
-        rejecting.acceptsRequest = false
-        let controller = controller(apps: { [accepting, rejecting] })
-        let target = try XCTUnwrap(controller.prepare(reading()))
-        XCTAssertEqual(controller.requestQuit(target), .partiallyRequested)
-        XCTAssertEqual(accepting.quitRequests, 1)
-        XCTAssertEqual(rejecting.quitRequests, 1)
+        for mode in [AppQuitMode.normal, .force] {
+            let accepting = FakeApplication(pid: 1)
+            let rejecting = FakeApplication(pid: 2)
+            rejecting.acceptsRequest = false
+            let controller = controller(apps: { [accepting, rejecting] })
+            let target = try XCTUnwrap(controller.prepare(reading()))
+            XCTAssertEqual(controller.requestQuit(target, mode: mode), .partiallyRequested)
+            XCTAssertEqual(accepting.requestedModes, [mode])
+            XCTAssertEqual(rejecting.requestedModes, [mode])
+        }
     }
 
     private func controller(apps: @escaping () -> [any QuitApplication]) -> AppQuitController {
@@ -154,7 +186,8 @@ private final class FakeApplication: QuitApplication {
     var launchDate: Date? = Date(timeIntervalSince1970: 10)
     var isTerminated = false
     var isRegular = true
-    var quitRequests = 0
+    var requestedModes: [AppQuitMode] = []
+    var quitRequests: Int { requestedModes.count }
     var acceptsRequest = true
 
     init(pid: pid_t = 1, bundle: String = "/Applications/Browser.app") {
@@ -164,8 +197,8 @@ private final class FakeApplication: QuitApplication {
     }
 
     func representsSameApplication(as other: any QuitApplication) -> Bool { self === other }
-    func requestTermination() -> Bool {
-        quitRequests += 1
+    func requestTermination(mode: AppQuitMode) -> Bool {
+        requestedModes.append(mode)
         return acceptsRequest
     }
 }
