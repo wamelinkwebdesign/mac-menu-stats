@@ -4,6 +4,21 @@ A small native macOS app that puts CPU usage, memory usage, and free startup dis
 
 ![Menu Stats showing system resources and the top apps by usage](docs/screenshots/overview.jpg)
 
+## Download and install
+
+**[Download Menu Stats 1.3.1 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.1/Menu-Stats-1.3.1-universal.zip)**
+
+Requires macOS 13 or later. One universal download includes Apple silicon and Intel builds. No Xcode or Swift installation is needed to use it.
+
+1. Download and unzip the file.
+2. Drag **Menu Stats.app** into **Applications**. Quit an older copy before replacing it.
+3. Open **Menu Stats** from Applications. Its CPU, RAM, and disk readings appear in the menu bar.
+4. To start it automatically, add the installed app under **System Settings > General > Login Items & Extensions > Open at Login**.
+
+The download is signed with an Apple Developer ID certificate, but **is not notarized by Apple**. macOS may block the first launch because Apple has not checked it. If you trust this release, attempt to open it, then use **System Settings > Privacy & Security > Open Anyway** and confirm. See [Apple's guidance on opening downloaded apps](https://support.apple.com/en-us/102445). You do not need to disable Gatekeeper or run Terminal commands.
+
+See [all releases](https://github.com/wamelinkwebdesign/mac-menu-stats/releases) for release notes and SHA-256 checksums. The current build was run on Apple silicon; the Intel slice is included and signature-checked, but has not been run on an Intel Mac.
+
 ## Features
 
 - CPU, RAM, and free disk space at a glance, without a Dock icon.
@@ -18,9 +33,9 @@ A small native macOS app that puts CPU usage, memory usage, and free startup dis
 - **To run:** macOS 13 Ventura or later.
 - **To build:** a Swift 6 or newer compiler and the macOS SDK, available through a compatible Xcode or Command Line Tools installation.
 
-This repository provides source code. The build script produces a locally signed debug app, not a notarized distribution release.
+Building from source is optional. The commands below produce a locally signed debug app. The downloadable release above uses an optimized universal build signed with Developer ID.
 
-## Build and install
+## Build from source
 
 Clone into a local development folder outside cloud-managed Documents folders, then build:
 
@@ -68,7 +83,7 @@ If normal Quit does not work, choose **Force Quit…** in the confirmation panel
 
 ![Menu Stats showing its separate Force Quit confirmation and unsaved changes warning](docs/screenshots/force-quit.jpg)
 
-*The Force Quit screenshot uses a disposable test app designed to refuse a normal quit request.*
+*The screenshot shows the separate Force Quit warning. This preview was cancelled without quitting the selected app.*
 
 The selected app stays fixed while the live rankings change. Closing the panel or choosing Cancel dismisses a pending confirmation. Feedback reports a quit request, not a guaranteed completed exit.
 
@@ -122,3 +137,11 @@ For a native smoke check, confirm that menu bar values update, inspect both app 
 | `CProcessStats` | C bridge to macOS process APIs. |
 
 Generated app bundles, work files, and Swift build artifacts are kept out of git.
+
+### Build a release bundle
+
+```sh
+CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" bash scripts/build-release.sh
+```
+
+This creates `outputs/release/Menu Stats.app` with optimized Apple silicon and Intel executables and validates its signature. Signing with Developer ID enables the hardened runtime and a secure timestamp. Without `CODE_SIGN_IDENTITY`, the script creates an explicitly ad-hoc signed local build. The script does not notarize or upload the app.

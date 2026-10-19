@@ -118,6 +118,7 @@ struct AppUsageView: View {
                 .accessibilityLabel("Confirm \(isForce ? "force quit" : "quit") \(target.name)")
             }
             .controlSize(.small)
+            .font(.system(size: 11))
         }
         .frame(maxWidth: .infinity, minHeight: 133, alignment: .center)
     }
@@ -171,6 +172,7 @@ struct AppUsageView: View {
                 pendingQuit = target
             }
                 .controlSize(.mini)
+                .font(.system(size: 10))
                 .fixedSize()
                 .frame(width: 42)
                 .disabled(target == nil)

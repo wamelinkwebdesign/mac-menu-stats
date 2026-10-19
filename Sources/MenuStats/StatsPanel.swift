@@ -86,6 +86,7 @@ struct StatsPanel: View {
                     .keyboardShortcut("q", modifiers: .command)
             }
             .controlSize(.small)
+            .font(.system(size: 11))
         }
         .padding(20)
         .frame(width: 440)
