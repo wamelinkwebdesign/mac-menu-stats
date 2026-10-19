@@ -27,6 +27,12 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     exit 1
 fi
 
+icon_path="$project_dir/packaging/icon/AppIcon.icns"
+if [[ ! -s "$icon_path" ]] || ! /usr/bin/sips -g format "$icon_path" 2>/dev/null | /usr/bin/grep -q 'format: icns'; then
+    printf 'Missing or invalid macOS app icon: %s\n' "$icon_path" >&2
+    exit 1
+fi
+
 # Keep debug information and local source paths out of the distributed executable.
 build_options=(
     --package-path "$project_dir"
@@ -76,10 +82,11 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 
-mkdir -p -- "$staged_bundle/Contents/MacOS"
+mkdir -p -- "$staged_bundle/Contents/MacOS" "$staged_bundle/Contents/Resources"
 executable="$staged_bundle/Contents/MacOS/MenuStats"
 cp -- "$binary_path" "$executable"
 cp -- "$project_dir/packaging/Info.plist" "$staged_bundle/Contents/Info.plist"
+cp -- "$icon_path" "$staged_bundle/Contents/Resources/AppIcon.icns"
 /usr/bin/xcrun strip -S -x "$executable"
 /usr/bin/lipo "$executable" -verify_arch arm64
 /usr/bin/lipo "$executable" -verify_arch x86_64

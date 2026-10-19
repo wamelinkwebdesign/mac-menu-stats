@@ -23,6 +23,12 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     exit 1
 fi
 
+icon_path="$project_dir/packaging/icon/AppIcon.icns"
+if [[ ! -s "$icon_path" ]] || ! /usr/bin/sips -g format "$icon_path" 2>/dev/null | /usr/bin/grep -q 'format: icns'; then
+    printf 'Missing or invalid macOS app icon: %s\n' "$icon_path" >&2
+    exit 1
+fi
+
 # Finish and validate the build before touching an existing app bundle.
 swift build --package-path "$project_dir" --configuration debug --product MenuStats
 binary_dir="$(swift build --package-path "$project_dir" --configuration debug --show-bin-path)"
@@ -55,9 +61,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p -- "$staged_bundle/Contents/MacOS"
+mkdir -p -- "$staged_bundle/Contents/MacOS" "$staged_bundle/Contents/Resources"
 cp -- "$binary_path" "$staged_bundle/Contents/MacOS/MenuStats"
 cp -- "$project_dir/packaging/Info.plist" "$staged_bundle/Contents/Info.plist"
+cp -- "$icon_path" "$staged_bundle/Contents/Resources/AppIcon.icns"
 /usr/bin/codesign --force --sign - --timestamp=none "$staged_bundle"
 /usr/bin/codesign --verify --strict --verbose=2 "$staged_bundle"
 

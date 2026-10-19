@@ -9,6 +9,7 @@ Native macOS menu bar utility for CPU usage, physical memory usage, and free spa
 - Swift Package Manager, SwiftUI content, and a narrow AppKit status item bridge.
 - Minimum macOS 13. Use native system fonts, colors, symbols, controls, and light/dark appearance inside the app.
 - The drag-to-Applications DMG uses WAMELINK branding, requested by Dennis on 19 October 2026. Use the approved custom open-W wordmark, Plus Jakarta Sans, and the white/ink/red palette in packaging/dmg. Keep the installation action clear and preserve the native app interface.
+- The app uses a dedicated flat Menu Stats icon, requested by Dennis on 19 October 2026. Use a light neutral tile, black and grey stats bars, and a small red menu-bar accent. Keep the symbol legible at small sizes with solid fills. Maintain editable artwork and the full macOS icon size set in packaging/icon; bundle it before signing.
 - Keep sampling and metric calculations in MenuStatsCore and UI in MenuStats.
 - Show unknown/error states explicitly. Never turn failed samples into zero.
 - CPU uses an interval sample over all cores. Document the memory and disk definitions.

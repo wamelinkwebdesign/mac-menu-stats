@@ -1,14 +1,16 @@
 # Menu Stats
 
+<img src="packaging/icon/AppIcon.png" width="112" height="112" alt="Menu Stats app icon" />
+
 A small native macOS app that puts CPU usage, memory usage, and free startup disk space in your menu bar. Click it to see which apps are using the most resources, quit an app normally, or force quit one that will not close.
 
 ![Menu Stats showing system resources and the top apps by usage](docs/screenshots/overview.jpg)
 
 ## Download and install
 
-**[Download Menu Stats 1.3.1 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.1/Menu-Stats-1.3.1-universal.dmg)**
+**[Download Menu Stats 1.3.2 for macOS](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.2/Menu-Stats-1.3.2-universal.dmg)**
 
-The WAMELINK-branded disk image opens a drag-to-Applications installation window. A [ZIP download](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.1/Menu-Stats-1.3.1-universal.zip) is also available.
+The WAMELINK-branded disk image opens a drag-to-Applications installation window. A [ZIP download](https://github.com/wamelinkwebdesign/mac-menu-stats/releases/download/v1.3.2/Menu-Stats-1.3.2-universal.zip) is also available.
 
 Requires macOS 13 or later. One universal download includes Apple silicon and Intel builds. No Xcode or Swift installation is needed to use it.
 
@@ -169,10 +171,14 @@ CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
 The script validates the app's signature and ticket, creates the WAMELINK Finder layout, verifies the Applications shortcut and copied app, and signs `outputs/dmg/Menu-Stats-<version>-universal.dmg`. It requires the Menu Stats developer team and preserves an earlier output if validation fails. Submit that final DMG to Apple's notary service and staple its ticket before publishing:
 
 ```sh
-xcrun notarytool submit outputs/dmg/Menu-Stats-1.3.1-universal.dmg \
+xcrun notarytool submit outputs/dmg/Menu-Stats-1.3.2-universal.dmg \
   --keychain-profile YOUR_NOTARY_PROFILE --wait
-xcrun stapler staple outputs/dmg/Menu-Stats-1.3.1-universal.dmg
-xcrun stapler validate outputs/dmg/Menu-Stats-1.3.1-universal.dmg
+xcrun stapler staple outputs/dmg/Menu-Stats-1.3.2-universal.dmg
+xcrun stapler validate outputs/dmg/Menu-Stats-1.3.2-universal.dmg
 ```
 
 The editable background renderer, brand sources, and font license are documented in [packaging/dmg/README.md](packaging/dmg/README.md).
+
+### App icon
+
+The native app icon is included in both local and release bundles. Its editable renderer and all macOS sizes are documented in [packaging/icon/README.md](packaging/icon/README.md).
