@@ -28,6 +28,8 @@ See [all releases](https://github.com/wamelinkwebdesign/mac-menu-stats/releases)
 ## Features
 
 - CPU, RAM, and free disk space at a glance, without a Dock icon.
+- Short CPU and memory history graphs, memory pressure, and swap use.
+- Network download and upload speed, and battery charge, health, cycle count, and temperature on Mac laptops.
 - A live top-five list ranked by CPU or memory, with app icons and usage readings.
 - Normal Quit and a separate, explicitly confirmed Force Quit action for desktop apps.
 - Refresh every 1, 2, or 5 seconds, plus a manual refresh button and a shortcut to Activity Monitor.
@@ -118,7 +120,12 @@ Menu Stats and Activity Monitor may show different values because they use diffe
 | --- | --- |
 | System CPU | The change in user, system, and nice CPU ticks divided by the change in all ticks, including idle. Usage across all cores is shown on a 0 to 100% scale. |
 | System memory | An estimate of physical memory used: anonymous resident pages minus purgeable pages, plus wired pages and the compressor's physical storage. File-backed cache is excluded. This percentage is not memory pressure. |
+| Memory pressure | The level macOS reports in `kern.memorystatus_vm_pressure_level`: normal, elevated (warning), or high (critical). It matches the color of Activity Monitor's pressure graph and tints the memory bar. |
+| Swap | Used and total swap space from `vm.swapusage`. Swap is disk space macOS uses when physical memory runs short. |
+| History graphs | The last 60 system samples of CPU and memory on a fixed 0 to 100% scale. Failed samples leave a gap. The graphs restart when the refresh interval changes. |
 | Free disk space | Space currently available to the user on `/System/Volumes/Data`, using `statfs.f_bavail` times the block size. Purgeable capacity that Finder may include is excluded. APFS volumes share container space. |
+| Network | Bytes received and sent per second since the previous sample, from 64-bit interface counters. Only Ethernet-type interfaces, which include Wi-Fi, are summed. Loopback, VPN tunnels, and bridges are excluded so the same traffic is not counted twice. |
+| Battery | Charge and power state from the IOKit power source API. Health is the full-charge capacity divided by the design capacity, capped at 100%, and is an estimate that can differ from System Settings. Cycle count and temperature come from the battery's registry entry. The row only appears on Macs with an internal battery. |
 | App CPU | Interval CPU time divided by elapsed time and the logical core count, using Mach absolute-time ticks. It uses the same whole-machine scale as the menu bar. Activity Monitor commonly uses 100% per core, so its percentages can be higher. |
 | App memory | The physical footprint reported by `proc_pid_rusage`, including compressed memory. These figures do not sum directly to the system memory estimate. |
 
@@ -130,7 +137,7 @@ Unavailable readings are shown as unknown, never as zero. Protected or exited pr
 
 ## Privacy and app control
 
-Resource collection stays on your Mac and uses system APIs rather than shell commands. Update checks contact a signed feed hosted on GitHub; approved updates download from GitHub Releases. GitHub receives ordinary request information such as IP address and app/version user agent. CPU, memory, disk, and app-usage readings are never uploaded. Sparkle's system profiling is disabled.
+Resource collection stays on your Mac and uses system APIs rather than shell commands. Update checks contact a signed feed hosted on GitHub; approved updates download from GitHub Releases. GitHub receives ordinary request information such as IP address and app/version user agent. CPU, memory, disk, network, battery, and app-usage readings are never uploaded. Sparkle's system profiling is disabled.
 
 [Sparkle](https://sparkle-project.org/) verifies the signed update feed and the archive before extraction, then handles installation and relaunch. The app asks for no additional monitoring permissions. macOS may request administrator approval if the installed app is not writable by your account.
 

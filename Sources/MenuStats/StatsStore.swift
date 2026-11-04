@@ -22,16 +22,23 @@ private actor AppSamplingService {
 @MainActor
 final class StatsStore: ObservableObject {
     @Published private(set) var snapshot: SystemSnapshot?
+    @Published private(set) var cpuHistory = SampleHistory(capacity: StatsStore.historyLength)
+    @Published private(set) var memoryHistory = SampleHistory(capacity: StatsStore.historyLength)
     @Published private(set) var appUsage: AppUsageSnapshot?
     @Published private(set) var quitFeedback: String?
     @Published private(set) var panelIsVisible = false
     @Published var refreshInterval: Int {
         didSet {
             UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
+            // Keep each graph on one time scale.
+            cpuHistory.removeAll()
+            memoryHistory.removeAll()
             start()
             if panelIsVisible { startAppPolling() }
         }
     }
+
+    static let historyLength = 60
 
     private let service = SamplingService()
     private let appService = AppSamplingService()
@@ -79,7 +86,11 @@ final class StatsStore: ObservableObject {
         guard !refreshing else { return }
         refreshing = true
         let sample = await service.sample()
-        if !Task.isCancelled { snapshot = sample }
+        if !Task.isCancelled {
+            snapshot = sample
+            cpuHistory.append(sample.cpuPercent)
+            memoryHistory.append(sample.memory?.percentUsed)
+        }
         refreshing = false
     }
 
@@ -170,6 +181,27 @@ enum StatsFormat {
         formatter.includesUnit = true
         formatter.isAdaptive = true
         return formatter.string(fromByteCount: Int64(clamping: value))
+    }
+
+    static func rate(_ bytesPerSecond: Double) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .decimal
+        formatter.allowedUnits = [.useKB, .useMB, .useGB]
+        formatter.allowsNonnumericFormatting = false
+        return formatter.string(fromByteCount: Int64(bytesPerSecond.rounded())) + "/s"
+    }
+
+    static func pressure(_ value: MemoryPressure) -> String {
+        switch value {
+        case .normal: return "normal"
+        case .warning: return "elevated"
+        case .critical: return "high"
+        }
+    }
+
+    static func historySpan(samples: Int, interval: Int) -> String {
+        let seconds = samples * interval
+        return seconds < 120 ? "\(seconds) seconds" : "\(seconds / 60) minutes"
     }
 
     static func memoryBytes(_ value: UInt64) -> String {

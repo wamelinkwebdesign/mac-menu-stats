@@ -4,6 +4,7 @@ import Foundation
 /// Synchronous, dependency-free sampler. The caller controls its polling interval.
 public struct SystemSampler: Sendable {
     private var cpuInterval = CPUInterval()
+    private var networkInterval = NetworkInterval()
     private let dataVolumeURL = URL(fileURLWithPath: "/System/Volumes/Data", isDirectory: true)
 
     public init() {}
@@ -28,6 +29,20 @@ public struct SystemSampler: Sendable {
             errors.append("Memory: \(error.localizedDescription)")
         }
 
+        var pressure: MemoryPressure?
+        do {
+            pressure = try readMemoryPressure()
+        } catch {
+            errors.append("Memory pressure: \(error.localizedDescription)")
+        }
+
+        var swap: SwapReading?
+        do {
+            swap = try readSwap()
+        } catch {
+            errors.append("Swap: \(error.localizedDescription)")
+        }
+
         var disk: DiskReading?
         do {
             disk = try readDisk()
@@ -35,10 +50,32 @@ public struct SystemSampler: Sendable {
             errors.append("Disk: \(error.localizedDescription)")
         }
 
+        var network: NetworkReading?
+        do {
+            network = networkInterval.record(
+                try NetworkCounterReader.read(),
+                at: ProcessInfo.processInfo.systemUptime
+            )
+        } catch {
+            _ = networkInterval.record(nil, at: ProcessInfo.processInfo.systemUptime)
+            errors.append("Network: \(error.localizedDescription)")
+        }
+
+        var battery: BatteryStatus?
+        do {
+            battery = try BatteryReader.read()
+        } catch {
+            errors.append("Battery: \(error.localizedDescription)")
+        }
+
         return SystemSnapshot(
             cpuPercent: cpu,
             memory: memory,
+            memoryPressure: pressure,
+            swap: swap,
             disk: disk,
+            network: network,
+            battery: battery,
             sampledAt: Date(),
             errors: errors
         )
@@ -95,6 +132,29 @@ public struct SystemSampler: Sendable {
         return reading
     }
 
+    private func readMemoryPressure() throws -> MemoryPressure {
+        var level: Int32 = 0
+        var size = MemoryLayout<Int32>.size
+        guard sysctlbyname("kern.memorystatus_vm_pressure_level", &level, &size, nil, 0) == 0 else {
+            throw SampleError.posix(errno)
+        }
+        guard size == MemoryLayout<Int32>.size,
+              let pressure = MetricCalculations.memoryPressure(level: level) else {
+            throw SampleError.invalidStatistics
+        }
+        return pressure
+    }
+
+    private func readSwap() throws -> SwapReading {
+        var usage = xsw_usage()
+        var size = MemoryLayout<xsw_usage>.size
+        guard sysctlbyname("vm.swapusage", &usage, &size, nil, 0) == 0 else {
+            throw SampleError.posix(errno)
+        }
+        guard size == MemoryLayout<xsw_usage>.size else { throw SampleError.incompleteStatistics }
+        return MetricCalculations.swap(usedBytes: usage.xsu_used, totalBytes: usage.xsu_total)
+    }
+
     private func readDisk() throws -> DiskReading {
         var info = statfs()
         let result = dataVolumeURL.path.withCString { statfs($0, &info) }
@@ -113,7 +173,7 @@ public struct SystemSampler: Sendable {
     }
 }
 
-private enum SampleError: LocalizedError {
+enum SampleError: LocalizedError {
     case mach(kern_return_t)
     case posix(Int32)
     case incompleteStatistics

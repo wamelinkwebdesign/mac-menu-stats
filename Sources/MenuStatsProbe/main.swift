@@ -27,7 +27,9 @@ if CommandLine.arguments.contains("--apps") {
     Thread.sleep(forTimeInterval: 1)
     let second = sampler.sample()
     try printJSON([first, second])
-    if second.cpuPercent == nil || second.memory == nil || second.disk == nil || !second.errors.isEmpty {
+    if second.cpuPercent == nil || second.memory == nil || second.memoryPressure == nil
+        || second.swap == nil || second.disk == nil || second.network == nil
+        || second.battery == nil || !second.errors.isEmpty {
         exit(EXIT_FAILURE)
     }
 }
