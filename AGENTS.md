@@ -2,7 +2,7 @@
 
 ## Scope
 
-Native macOS menu bar utility for CPU usage, physical memory usage, and free space on the startup data volume. Keep resource sampling local and dependency-free. Sparkle is the only app dependency, used for signed in-app updates requested by Dennis on 19 October 2026. Network access is limited to the update feed and release downloads. No telemetry, custom privileged helpers, or automatic startup registration.
+Native macOS menu bar utility for CPU usage, physical memory usage and pressure, free space on the startup data volume, network throughput, and internal battery status. Keep resource sampling local and dependency-free. Sparkle is the only app dependency, used for signed in-app updates requested by Dennis on 19 October 2026. Network access is limited to the update feed and release downloads. No telemetry, custom privileged helpers, or automatic startup registration.
 
 ## Implementation
 
@@ -12,7 +12,7 @@ Native macOS menu bar utility for CPU usage, physical memory usage, and free spa
 - The app uses a dedicated flat Menu Stats icon, requested by Dennis on 19 October 2026. Use a light neutral tile, black and grey stats bars, and a small red menu-bar accent. Keep the symbol legible at small sizes with solid fills. Maintain editable artwork and the full macOS icon size set in packaging/icon; bundle it before signing.
 - Keep sampling and metric calculations in MenuStatsCore and UI in MenuStats.
 - Show unknown/error states explicitly. Never turn failed samples into zero.
-- CPU uses an interval sample over all cores. Document the memory and disk definitions.
+- CPU and network use interval samples. Document the memory, disk, network, and battery definitions.
 - Bound history and polling; do not spawn shell commands to collect metrics.
 - Use Sparkle's standard updater and persisted preferences. Check automatically by default, allow users to disable checks, and require approval to install. Keep system profiling disabled. Verify signed feeds and update archives before extraction; never weaken validation to bypass update errors. Keep private update keys in Keychain, with only the public key in the repository.
 - App quit requests require an explicit named confirmation and a revalidated application identity. Keep normal Quit available. Force Quit requires a separate confirmation warning about unsaved changes and must never run as an automatic fallback. Use NSRunningApplication APIs; do not terminate background services or target by display name alone.
